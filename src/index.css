@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --color-children-hall: #F5A623;
+  --color-youth-hall: #4A90D9;
+  --color-future-hall: #1E3A5F;
+  --color-skills-hall: #2E7D32;
+  --color-career-hall: #E91E63;
+  --color-makers-hall: #9C27B0;
+
+  --color-bg: #FFFFFF;
+  --color-surface: #F4F4F5;
+  --color-elevated: #E4E4E7;
+
+  --color-text-primary: #18181B;
+  --color-text-secondary: #71717A;
+  --color-text-tertiary: #A1A1AA;
+  --color-text-muted: #D4D4D8;
+
+  --color-border: #D4D4D8;
+  --color-accent: #F5A623;
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .font-display {
+    font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+  }
+
+  .font-body {
+    font-family: "Inter", sans-serif;
+  }
+}
