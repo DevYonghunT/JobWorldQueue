@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { HallType, Course } from '../data/types';
 
 function getInitialTime(): string {
@@ -28,33 +29,40 @@ interface AppState {
   resetCourseSettings: () => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  currentTime: getInitialTime(),
-  selectedHall: 'children',
-  selectedSession: 1,
-  childAge: 6,
-  preferredRooms: [],
-  breakInterval: 2,
-  breakDuration: 10,
-  currentCourse: null,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentTime: getInitialTime(),
+      selectedHall: 'children',
+      selectedSession: 1,
+      childAge: 6,
+      preferredRooms: [],
+      breakInterval: 2,
+      breakDuration: 10,
+      currentCourse: null,
 
-  setCurrentTime: (time) => set({ currentTime: time }),
-  setSelectedHall: (hall) => set({ selectedHall: hall, preferredRooms: [] }),
-  setSelectedSession: (session) => set({ selectedSession: session }),
-  setChildAge: (age) => set({ childAge: age }),
-  togglePreferredRoom: (roomId) => set((state) => ({
-    preferredRooms: state.preferredRooms.includes(roomId)
-      ? state.preferredRooms.filter(id => id !== roomId)
-      : [...state.preferredRooms, roomId],
-  })),
-  clearPreferredRooms: () => set({ preferredRooms: [] }),
-  setBreakInterval: (interval) => set({ breakInterval: interval }),
-  setBreakDuration: (duration) => set({ breakDuration: duration }),
-  setCurrentCourse: (course) => set({ currentCourse: course }),
-  resetCourseSettings: () => set({
-    preferredRooms: [],
-    breakInterval: 2,
-    breakDuration: 10,
-    currentCourse: null,
-  }),
-}));
+      setCurrentTime: (time) => set({ currentTime: time }),
+      setSelectedHall: (hall) => set({ selectedHall: hall, preferredRooms: [] }),
+      setSelectedSession: (session) => set({ selectedSession: session }),
+      setChildAge: (age) => set({ childAge: age }),
+      togglePreferredRoom: (roomId) => set((state) => ({
+        preferredRooms: state.preferredRooms.includes(roomId)
+          ? state.preferredRooms.filter(id => id !== roomId)
+          : [...state.preferredRooms, roomId],
+      })),
+      clearPreferredRooms: () => set({ preferredRooms: [] }),
+      setBreakInterval: (interval) => set({ breakInterval: interval }),
+      setBreakDuration: (duration) => set({ breakDuration: duration }),
+      setCurrentCourse: (course) => set({ currentCourse: course }),
+      resetCourseSettings: () => set({
+        preferredRooms: [],
+        breakInterval: 2,
+        breakDuration: 10,
+        currentCourse: null,
+      }),
+    }),
+    {
+      name: 'jobworld-storage', // 로컬 스토리지에 저장될 이름
+    }
+  )
+);
