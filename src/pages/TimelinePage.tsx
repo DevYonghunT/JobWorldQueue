@@ -1,13 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, RotateCcw, Share2, Coffee } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-import { halls } from '../data/halls';
+import { getHallColor } from '../data/halls';
 import { AdBanner } from '../components/AdBanner';
 
 export function TimelinePage() {
   const navigate = useNavigate();
-  const { currentCourse, selectedHall } = useAppStore();
-  const currentHall = halls.find(h => h.id === selectedHall) ?? halls[0];
+  const { currentCourse } = useAppStore();
 
   if (!currentCourse) {
     return (
@@ -88,6 +87,9 @@ export function TimelinePage() {
             const room = item.room;
             if (!room) return null;
 
+            // Use room's hall color for accurate styling
+            const hallColor = getHallColor(room.hall);
+
             return (
               <div key={item.roomId} className="flex gap-[16px] items-stretch">
                 {/* Timeline line + dot */}
@@ -96,8 +98,8 @@ export function TimelinePage() {
                   <div
                     className="w-[14px] h-[14px] rounded-full shrink-0 border-[3px]"
                     style={{
-                      borderColor: currentHall.color,
-                      backgroundColor: index === 0 ? currentHall.color : 'white',
+                      borderColor: hallColor,
+                      backgroundColor: index === 0 ? hallColor : 'white',
                     }}
                   />
                   {index < currentCourse.items.length - 1 && (
@@ -109,8 +111,8 @@ export function TimelinePage() {
                   <div
                     className="rounded-[16px] px-[16px] py-[14px] border-[1.5px]"
                     style={{
-                      backgroundColor: `${currentHall.color}10`,
-                      borderColor: `${currentHall.color}30`,
+                      backgroundColor: `${hallColor}10`,
+                      borderColor: `${hallColor}30`,
                     }}
                   >
                     <div className="flex items-start justify-between">
@@ -126,7 +128,7 @@ export function TimelinePage() {
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-[2px]">
-                        <span className="text-[13px] font-semibold" style={{ color: currentHall.color }}>
+                        <span className="text-[13px] font-semibold" style={{ color: hallColor }}>
                           {item.startTime}
                         </span>
                         <span className="text-[11px] text-[var(--color-text-tertiary)]">
@@ -138,8 +140,8 @@ export function TimelinePage() {
                       <span
                         className="px-[8px] py-[2px] rounded-[8px] text-[11px] font-medium"
                         style={{
-                          backgroundColor: `${currentHall.color}20`,
-                          color: currentHall.color,
+                          backgroundColor: `${hallColor}20`,
+                          color: hallColor,
                         }}
                       >
                         {room.joyCurrency > 0 ? '+' : ''}{room.joyCurrency} 조이
@@ -166,24 +168,43 @@ export function TimelinePage() {
             type="button"
             onClick={async () => {
               const shareText = `[한국잡월드 코스]\n총 ${currentCourse.totalExperiences}개 체험, ${currentCourse.totalJoy > 0 ? '+' : ''}${currentCourse.totalJoy} 조이`;
+
+              // Helper to copy to clipboard with feedback
+              const copyToClipboard = async () => {
+                if (navigator.clipboard) {
+                  try {
+                    await navigator.clipboard.writeText(shareText);
+                    alert('코스 정보가 클립보드에 복사되었습니다.');
+                    return true;
+                  } catch {
+                    return false;
+                  }
+                }
+                return false;
+              };
+
               if (navigator.share) {
                 try {
                   await navigator.share({
                     title: '한국잡월드 코스',
                     text: shareText,
                   });
-                } catch {
-                  // User cancelled or share failed
-                }
-              } else if (navigator.clipboard) {
-                try {
-                  await navigator.clipboard.writeText(shareText);
-                  alert('코스 정보가 클립보드에 복사되었습니다.');
-                } catch {
-                  alert('공유 기능을 사용할 수 없습니다.');
+                } catch (error) {
+                  // AbortError means user cancelled - no action needed
+                  if (error instanceof Error && error.name !== 'AbortError') {
+                    // Share failed for other reasons - fallback to clipboard
+                    const copied = await copyToClipboard();
+                    if (!copied) {
+                      alert('공유 기능을 사용할 수 없습니다.');
+                    }
+                  }
                 }
               } else {
-                alert('공유 기능을 사용할 수 없습니다.');
+                // No Web Share API - use clipboard
+                const copied = await copyToClipboard();
+                if (!copied) {
+                  alert('공유 기능을 사용할 수 없습니다.');
+                }
               }
             }}
             className="flex-1 h-[52px] bg-[var(--color-accent)] rounded-[24px] flex items-center justify-center gap-[8px]"

@@ -29,6 +29,9 @@ interface AppState {
   resetCourseSettings: () => void;
 }
 
+// Storage version for migration
+const STORAGE_VERSION = 1;
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
@@ -62,7 +65,32 @@ export const useAppStore = create<AppState>()(
       }),
     }),
     {
-      name: 'jobworld-storage', // 로컬 스토리지에 저장될 이름
+      name: 'jobworld-storage',
+      version: STORAGE_VERSION,
+      // Exclude currentTime from persistence - always use fresh time
+      partialize: (state) => ({
+        selectedHall: state.selectedHall,
+        selectedSession: state.selectedSession,
+        childAge: state.childAge,
+        preferredRooms: state.preferredRooms,
+        breakInterval: state.breakInterval,
+        breakDuration: state.breakDuration,
+        currentCourse: state.currentCourse,
+      }),
+      // Migration for future schema changes
+      migrate: (persistedState, version) => {
+        if (version < STORAGE_VERSION) {
+          // Handle migrations here when schema changes
+          return persistedState as AppState;
+        }
+        return persistedState as AppState;
+      },
+      // Reset currentTime to fresh value on rehydration
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.currentTime = getInitialTime();
+        }
+      },
     }
   )
 );

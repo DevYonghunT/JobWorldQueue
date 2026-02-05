@@ -1,12 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronDown, Clock, Sparkles, Check } from 'lucide-react';
+import { ChevronLeft, ChevronDown, Clock, Sparkles, Check, AlertCircle } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-import { halls } from '../data/halls';
+import { halls, hallsWithData } from '../data/halls';
 import { rooms } from '../data/rooms';
 import type { HallType } from '../data/types';
 import { generateCourse } from '../utils/courseGenerator';
 import { formatTimeDisplay } from '../utils/time';
 import { AdBanner } from '../components/AdBanner';
+
+// Filter halls to only show those with data
+const availableHalls = halls.filter(h => hallsWithData.has(h.id));
 
 export function CourseGeneratorPage() {
   const navigate = useNavigate();
@@ -23,7 +26,7 @@ export function CourseGeneratorPage() {
 
   // Filter rooms by age (convert years to months)
   const ageInMonths = childAge * 12;
-  const filteredRooms = hallRooms.filter(r => r.minAge <= ageInMonths);
+  const filteredRooms = hallRooms.filter(r => r.minAgeMonths <= ageInMonths);
 
   const popularRooms = filteredRooms.filter(r => r.isPopular);
   const displayRooms = popularRooms.length > 0 ? popularRooms : filteredRooms.slice(0, 8);
@@ -95,7 +98,7 @@ export function CourseGeneratorPage() {
                 }}
                 className="bg-transparent text-[16px] font-medium text-[var(--color-text-primary)] outline-none appearance-none"
               >
-                {halls.map(h => (
+                {availableHalls.map(h => (
                   <optgroup key={h.id} label={h.name}>
                     <option value={`${h.id}-1`}>{h.name} (1부)</option>
                     <option value={`${h.id}-2`}>{h.name} (2부)</option>
@@ -193,14 +196,31 @@ export function CourseGeneratorPage() {
           </div>
         </div>
 
+        {/* Empty Rooms Warning */}
+        {filteredRooms.length === 0 && (
+          <div className="flex items-center gap-[10px] px-[16px] py-[12px] bg-[#FEE2E2] rounded-[16px]">
+            <AlertCircle size={20} className="text-[#DC2626] shrink-0" />
+            <span className="text-[14px] text-[#DC2626]">
+              선택한 체험관에 해당 나이의 체험실이 없습니다.
+            </span>
+          </div>
+        )}
+
         {/* Generate Button */}
         <button
           type="button"
           onClick={handleGenerate}
-          className="w-full h-[56px] bg-[var(--color-accent)] rounded-[24px] flex items-center justify-center gap-[10px]"
+          disabled={filteredRooms.length === 0}
+          className={`w-full h-[56px] rounded-[24px] flex items-center justify-center gap-[10px] ${
+            filteredRooms.length === 0
+              ? 'bg-[var(--color-surface)] cursor-not-allowed'
+              : 'bg-[var(--color-accent)]'
+          }`}
         >
-          <Sparkles size={22} aria-hidden="true" className="text-white" />
-          <span className="font-display text-[17px] font-bold text-white">코스 생성하기</span>
+          <Sparkles size={22} aria-hidden="true" className={filteredRooms.length === 0 ? 'text-[var(--color-text-tertiary)]' : 'text-white'} />
+          <span className={`font-display text-[17px] font-bold ${filteredRooms.length === 0 ? 'text-[var(--color-text-tertiary)]' : 'text-white'}`}>
+            코스 생성하기
+          </span>
         </button>
       </div>
     </div>

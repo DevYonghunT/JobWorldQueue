@@ -1,32 +1,23 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Sparkles, Calendar, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
-import { halls } from '../data/halls';
+import { halls, hallsWithData, getHallRoomCount, getHallColor } from '../data/halls';
 import { rooms } from '../data/rooms';
 import { HALL_ICONS } from '../data/constants';
 import { getAvailableRooms } from '../utils/schedule';
-import { getCurrentTime, getCurrentSession, getRemainingTime, formatTimeDisplay } from '../utils/time';
+import { getCurrentSession, getRemainingTime, formatTimeDisplay } from '../utils/time';
 import { AdBanner } from '../components/AdBanner';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { currentTime, setCurrentTime, selectedSession, setSelectedHall } = useAppStore();
+  const { currentTime, selectedSession, setSelectedHall } = useAppStore();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(getCurrentTime());
-    }, 30000);
-    setCurrentTime(getCurrentTime());
-    return () => clearInterval(interval);
-  }, [setCurrentTime]);
+  // Time ticker is now managed in Layout component
 
   const session = getCurrentSession(currentTime) || selectedSession;
   const available = getAvailableRooms(rooms, currentTime, session);
   const remainingTime = getRemainingTime(currentTime, session);
   const displayTime = formatTimeDisplay(currentTime);
-
-  const dotColors = halls.map(h => h.color);
 
   return (
     <div className="flex flex-col">
@@ -73,23 +64,34 @@ export function HomePage() {
             체험관 선택
           </h2>
           <div className="grid grid-cols-2 gap-[12px]">
-            {halls.map((hall) => (
-              <button
-                key={hall.id}
-                type="button"
-                onClick={() => {
-                  setSelectedHall(hall.id);
-                  navigate('/timetable');
-                }}
-                aria-label={`${hall.name} 시간표 보기`}
-                className="flex flex-col gap-[8px] p-[20px_16px] rounded-[20px] text-left"
-                style={{ backgroundColor: hall.color }}
-              >
-                <span aria-hidden="true" className="text-[28px]">{HALL_ICONS[hall.icon]}</span>
-                <span className="text-[16px] font-semibold text-white">{hall.name}</span>
-                <span className="text-[11px] text-white/70">{hall.roomCount} | {hall.ageRange}</span>
-              </button>
-            ))}
+            {halls.map((hall) => {
+              const hasData = hallsWithData.has(hall.id);
+              const roomCount = hasData ? getHallRoomCount(hall.id) : 0;
+              return (
+                <button
+                  key={hall.id}
+                  type="button"
+                  onClick={() => {
+                    if (hasData) {
+                      setSelectedHall(hall.id);
+                      navigate('/timetable');
+                    }
+                  }}
+                  disabled={!hasData}
+                  aria-label={hasData ? `${hall.name} 시간표 보기` : `${hall.name} - 준비 중`}
+                  className={`flex flex-col gap-[8px] p-[20px_16px] rounded-[20px] text-left relative ${
+                    !hasData ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  style={{ backgroundColor: hall.color }}
+                >
+                  <span aria-hidden="true" className="text-[28px]">{HALL_ICONS[hall.icon]}</span>
+                  <span className="text-[16px] font-semibold text-white">{hall.name}</span>
+                  <span className="text-[11px] text-white/70">
+                    {hasData ? `${roomCount}개 체험실 | ${hall.ageRange}` : '준비 중'}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -118,42 +120,45 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* Now Available */}
+        {/* Upcoming Experiences */}
         <div className="flex flex-col gap-[16px]">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-[20px] font-bold text-[var(--color-text-primary)]">
-              지금 입장 가능
+              다음 체험 일정
             </h2>
             <span className="px-[12px] py-[6px] bg-[#F5A62320] rounded-[20px] text-[13px] font-semibold text-[var(--color-accent)]">
               {available.length}개 체험실
             </span>
           </div>
           <div className="bg-[var(--color-surface)] rounded-[24px]">
-            {available.slice(0, 3).map((room, i) => (
-              <div
-                key={room.id}
-                className="flex items-center gap-[14px] px-[20px] py-[16px]"
-              >
+            {available.slice(0, 3).map((room) => {
+              const hallColor = getHallColor(room.hall);
+              return (
                 <div
-                  className="w-[10px] h-[10px] rounded-full shrink-0"
-                  style={{ backgroundColor: dotColors[i % dotColors.length] }}
-                />
-                <div className="flex flex-col gap-[2px] flex-1">
-                  <span className="text-[16px] font-semibold text-[var(--color-text-primary)]">
-                    {room.name}
-                  </span>
-                  <span className="text-[13px] text-[var(--color-text-secondary)]">
-                    {room.floor}층 | {room.duration}분 | {room.nextTime} 시작
+                  key={room.id}
+                  className="flex items-center gap-[14px] px-[20px] py-[16px]"
+                >
+                  <div
+                    className="w-[10px] h-[10px] rounded-full shrink-0"
+                    style={{ backgroundColor: hallColor }}
+                  />
+                  <div className="flex flex-col gap-[2px] flex-1">
+                    <span className="text-[16px] font-semibold text-[var(--color-text-primary)]">
+                      {room.name}
+                    </span>
+                    <span className="text-[13px] text-[var(--color-text-secondary)]">
+                      {room.floor}층 | {room.duration}분 | {room.nextTime} 시작
+                    </span>
+                  </div>
+                  <span
+                    className="text-[13px] font-semibold"
+                    style={{ color: hallColor }}
+                  >
+                    {room.joyCurrency > 0 ? '+' : ''}{room.joyCurrency} 조이
                   </span>
                 </div>
-                <span
-                  className="text-[13px] font-semibold"
-                  style={{ color: dotColors[i % dotColors.length] }}
-                >
-                  {room.joyCurrency > 0 ? '+' : ''}{room.joyCurrency} 조이
-                </span>
-              </div>
-            ))}
+              );
+            })}
             <button
               type="button"
               onClick={() => navigate('/timetable')}

@@ -1,4 +1,6 @@
-// Session time constants
+import type { HallIconType } from './types';
+
+// Session time constants (single source of truth)
 export const SESSION_TIMES = {
   1: { start: '09:30', end: '13:30' },
   2: { start: '14:30', end: '18:30' },
@@ -8,10 +10,12 @@ export const SESSION_TIMES = {
 export const COURSE_GENERATION = {
   MAX_ITERATIONS: 20,
   MIN_REMAINING_TIME: 15, // minimum minutes before session end to consider adding new experience
+  PREFERRED_BONUS: 30, // minutes bonus for preferred rooms (reduces effective wait time)
+  POPULAR_BONUS: 15, // minutes bonus for popular rooms
 } as const;
 
-// Hall icon emoji mappings
-export const HALL_ICONS: Record<string, string> = {
+// Hall icon emoji mappings with type safety
+export const HALL_ICONS: Record<HallIconType, string> = {
   baby: '👶',
   'graduation-cap': '🎓',
   rocket: '🚀',

@@ -1,47 +1,56 @@
-import type { HallInfo, InterestTypeInfo } from './types';
+import type { HallInfo, InterestTypeInfo, HallType } from './types';
+import { rooms } from './rooms';
+
+// Compute which halls have room data available
+export const hallsWithData = new Set<HallType>(
+  rooms.map(r => r.hall)
+);
+
+// Get room count for a hall dynamically
+export function getHallRoomCount(hallId: HallType): number {
+  return rooms.filter(r => r.hall === hallId).length;
+}
+
+// Get hall info by id
+export function getHallById(hallId: HallType): HallInfo | undefined {
+  return halls.find(h => h.id === hallId);
+}
+
+// Get hall color by hall type
+export function getHallColor(hallId: HallType): string {
+  return getHallById(hallId)?.color ?? '#888888';
+}
 
 export const halls: HallInfo[] = [
   {
     id: 'children', name: '어린이체험관', nameEn: 'Children',
     color: '#F5A623', icon: 'baby',
     ageRange: '4~13세', roomCount: '42개 체험실',
-    session1: { start: '09:30', end: '13:30' },
-    session2: { start: '14:30', end: '18:30' },
   },
   {
     id: 'youth', name: '청소년체험관', nameEn: 'Youth',
     color: '#4A90D9', icon: 'graduation-cap',
     ageRange: '10~19세', roomCount: '40개 체험실',
-    session1: { start: '09:30', end: '13:30' },
-    session2: { start: '14:30', end: '18:30' },
   },
   {
     id: 'future', name: '미래직업관', nameEn: 'Future',
     color: '#1E3A5F', icon: 'rocket',
     ageRange: '14세 이상', roomCount: '15개 체험실',
-    session1: { start: '09:30', end: '13:30' },
-    session2: { start: '14:30', end: '18:30' },
   },
   {
     id: 'skills', name: '숙련기술체험관', nameEn: 'Skills',
     color: '#2E7D32', icon: 'wrench',
     ageRange: '10세 이상', roomCount: '20개 체험실',
-    session1: { start: '09:30', end: '13:30' },
-    session2: { start: '14:30', end: '18:30' },
   },
   {
     id: 'career', name: '진로설계관', nameEn: 'Career',
     color: '#E91E63', icon: 'compass',
     ageRange: '14세 이상', roomCount: '10개 체험실',
-    session1: { start: '09:30', end: '13:30' },
-    session2: { start: '14:30', end: '18:30' },
   },
   {
     id: 'makers', name: '메카이브', nameEn: 'Makers',
     color: '#9C27B0', icon: 'blocks',
     ageRange: '10세 이상', roomCount: '8개 체험실',
-    session1: { start: '09:30', end: '13:30' },
-    session2: { start: '14:30', end: '18:30' },
   },
 ];
 

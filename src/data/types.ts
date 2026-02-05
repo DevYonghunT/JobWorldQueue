@@ -3,6 +3,9 @@ export type FloorType = 'M' | '3' | '2' | '1';
 export type DurationType = 15 | 20 | 25 | 30 | 35 | 40;
 export type InterestCode = 'R' | 'I' | 'A' | 'S' | 'E' | 'C';
 
+// Hall icon type for type safety
+export type HallIconType = 'baby' | 'graduation-cap' | 'rocket' | 'wrench' | 'compass' | 'blocks';
+
 export interface ExperienceRoom {
   id: string;
   name: string;
@@ -10,7 +13,7 @@ export interface ExperienceRoom {
   floor: FloorType;
   mapNumber: number;
   duration: DurationType;
-  minAge: number; // months
+  minAgeMonths: number; // age in months (e.g., 48 = 4 years old)
   joyCurrency: number;
   interestType: InterestCode[];
   icon: string;
@@ -23,29 +26,38 @@ export interface ScheduleSlot {
   startTimes: string[];
 }
 
+// HallInfo without session times (use SESSION_TIMES from constants)
 export interface HallInfo {
   id: HallType;
   name: string;
   nameEn: string;
   color: string;
-  icon: string;
+  icon: HallIconType;
   ageRange: string;
   roomCount: string;
-  session1: { start: string; end: string };
-  session2: { start: string; end: string };
 }
 
-export interface CourseItem {
+// Discriminated union for CourseItem
+export interface ExperienceCourseItem {
   roomId: string;
-  room?: ExperienceRoom;
+  room: ExperienceRoom;
   startTime: string;
   endTime: string;
-  type: 'experience' | 'break';
+  type: 'experience';
 }
+
+export interface BreakCourseItem {
+  roomId: 'break';
+  startTime: string;
+  endTime: string;
+  type: 'break';
+}
+
+export type CourseItem = ExperienceCourseItem | BreakCourseItem;
 
 export interface Course {
   id: string;
-  createdAt: Date;
+  createdAt: number; // timestamp for serialization
   items: CourseItem[];
   totalExperiences: number;
   totalJoy: number;

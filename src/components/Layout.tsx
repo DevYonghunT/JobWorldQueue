@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Calendar, Sparkles, User } from 'lucide-react';
+import { useAppStore } from '../store/appStore';
+import { getCurrentTime } from '../utils/time';
 
 const tabs = [
   { path: '/', label: '홈', icon: Home },
@@ -11,6 +14,19 @@ const tabs = [
 export function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const setCurrentTime = useAppStore((state) => state.setCurrentTime);
+
+  // Global time ticker - updates every 30 seconds
+  useEffect(() => {
+    // Set initial time
+    setCurrentTime(getCurrentTime());
+
+    const interval = setInterval(() => {
+      setCurrentTime(getCurrentTime());
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [setCurrentTime]);
 
   // Hide tab bar on timeline detail page
   const hideTabBar = location.pathname === '/timeline';
